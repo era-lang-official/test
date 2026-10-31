@@ -1,0 +1,88 @@
+// github.com/era-lang-official/test
+// Native Unit Testing and Micro-benchmarking Framework
+
+pub struct BenchmarkResult {
+    pub name: string,
+    pub iterations: i64,
+    pub elapsed_ms: i64,
+    pub ops_per_sec: i64,
+}
+
+impl BenchmarkResult {
+    pub fn report(&self) {
+        println(f"BENCH: {self.name} | {self.iterations} iters in {self.elapsed_ms} ms (~{self.ops_per_sec} ops/sec)");
+    }
+}
+
+pub struct TestRunner {
+    pub suite_name: string,
+    pub total: i64,
+    pub passed: i64,
+    pub failed: i64,
+    pub failures: Vec<string>,
+}
+
+impl TestRunner {
+    pub fn new(suite_name: string) -> TestRunner {
+        return TestRunner {
+            suite_name,
+            total: 0,
+            passed: 0,
+            failed: 0,
+            failures: Vec::<string>::new(),
+        };
+    }
+
+    pub fn assert_true(mut self, cond: bool, msg: string) -> TestRunner {
+        self.total += 1;
+        if cond {
+            self.passed += 1;
+        } else {
+            self.failed += 1;
+            self.failures.push(f"FAIL [true]: {msg}");
+        }
+        return self;
+    }
+
+    pub fn assert_false(mut self, cond: bool, msg: string) -> TestRunner {
+        return self.assert_true(!cond, msg);
+    }
+
+    pub fn assert_eq_str(mut self, actual: string, expected: string, msg: string) -> TestRunner {
+        self.total += 1;
+        if actual == expected {
+            self.passed += 1;
+        } else {
+            self.failed += 1;
+            self.failures.push(f"FAIL: {msg} (expected '{expected}', got '{actual}')");
+        }
+        return self;
+    }
+
+    pub fn assert_eq_int(mut self, actual: i64, expected: i64, msg: string) -> TestRunner {
+        self.total += 1;
+        if actual == expected {
+            self.passed += 1;
+        } else {
+            self.failed += 1;
+            self.failures.push(f"FAIL: {msg} (expected {expected}, got {actual})");
+        }
+        return self;
+    }
+
+    pub fn assert_contains(mut self, haystack: string, needle: string, msg: string) -> TestRunner {
+        return self.assert_true(haystack.contains(needle.clone()), f"{msg} ('{haystack}' should contain '{needle}')");
+    }
+
+    pub fn summary(&self) -> bool {
+        println(f"=== Test Suite: {self.suite_name} ===");
+        println(f"Total: {self.total} | Passed: {self.passed} | Failed: {self.failed}");
+        let mut i: usize = 0;
+        while i < self.failures.len() {
+            println(self.failures[i].clone());
+            i += 1;
+        }
+        return self.failed == 0;
+    }
+}
+
